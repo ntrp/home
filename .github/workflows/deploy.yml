@@ -1,0 +1,45 @@
+name: Deploy Website
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install modules
+        run: npm ci
+      - name: Build application
+        run: npm run build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist-${{ github.sha }}
+          path: dist
+          retention-days: 1
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          audience: sts.amazonaws.com.cn
+          aws-region: eu-central-1
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT}}:role/home-cicd-deploy
+      - name: Download Dist
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-${{ github.sha }}
+          path: dist
+      - name: Deploy to S3
+        run: aws s3 sync --delete ./dist/ s3://${{ secrets.BUCKET_NAME }}
+      - name: Create CloudFront invalidation
+        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
