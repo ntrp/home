@@ -1,0 +1,20 @@
+{
+  "language": "typescript",
+  "app": "npx ts-node main.ts",
+  "projectId": "c9b6f9bb-da97-4db2-a301-9f59d7a46577",
+  "sendCrashReports": "false",
+  "terraformProviders": [],
+  "terraformModules": [
+    {
+      "name": "label",
+      "source": "cloudposse/label/null",
+      "version": "0.25.0"
+    },
+    {
+      "name": "cloudfront-s3-cdn",
+      "source": "cloudposse/cloudfront-s3-cdn/aws",
+      "version": "0.92.0"
+    }
+  ],
+  "context": {}
+}
