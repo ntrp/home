@@ -1,26 +1,26 @@
-import { CloudfrontCachePolicy } from '@cdktf/provider-aws/lib/cloudfront-cache-policy';
+import { CloudfrontCachePolicy } from "@cdktf/provider-aws/lib/cloudfront-cache-policy";
 import {
   CloudfrontDistributionDefaultCacheBehavior,
   CloudfrontDistributionOrigin,
-} from '@cdktf/provider-aws/lib/cloudfront-distribution';
-import { CloudfrontOriginAccessControl } from '@cdktf/provider-aws/lib/cloudfront-origin-access-control';
-import { CloudfrontOriginRequestPolicy } from '@cdktf/provider-aws/lib/cloudfront-origin-request-policy';
-import { CloudfrontResponseHeadersPolicy } from '@cdktf/provider-aws/lib/cloudfront-response-headers-policy';
-import { Construct } from 'constructs';
-import { APP } from '../const';
+} from "@cdktf/provider-aws/lib/cloudfront-distribution";
+import { CloudfrontOriginAccessControl } from "@cdktf/provider-aws/lib/cloudfront-origin-access-control";
+import { CloudfrontOriginRequestPolicy } from "@cdktf/provider-aws/lib/cloudfront-origin-request-policy";
+import { CloudfrontResponseHeadersPolicy } from "@cdktf/provider-aws/lib/cloudfront-response-headers-policy";
+import { Construct } from "constructs";
+import { APP } from "../const";
 
-const frontendOriginId = 'frontend';
+const frontendOriginId = "frontend";
 
 export const frontendOrigin = (
   scope: Construct,
   env: string,
-  bucketRegionalDomainName: string
+  bucketRegionalDomainName: string,
 ): CloudfrontDistributionOrigin => {
-  const aoc = new CloudfrontOriginAccessControl(scope, 'frontend-aoc', {
+  const aoc = new CloudfrontOriginAccessControl(scope, "frontend-aoc", {
     name: `${APP}-${env}-home-frontend`,
-    originAccessControlOriginType: 's3',
-    signingBehavior: 'always',
-    signingProtocol: 'sigv4',
+    originAccessControlOriginType: "s3",
+    signingBehavior: "always",
+    signingProtocol: "sigv4",
   });
 
   return {
@@ -32,14 +32,14 @@ export const frontendOrigin = (
 
 export const frontendCacheBehaviour = (
   scope: Construct,
-  env: string
+  env: string,
 ): CloudfrontDistributionDefaultCacheBehavior => {
   return {
     targetOriginId: frontendOriginId,
-    allowedMethods: ['GET', 'HEAD', 'OPTIONS'],
-    cachedMethods: ['GET', 'HEAD'],
+    allowedMethods: ["GET", "HEAD", "OPTIONS"],
+    cachedMethods: ["GET", "HEAD"],
     compress: true,
-    viewerProtocolPolicy: 'redirect-to-https',
+    viewerProtocolPolicy: "redirect-to-https",
     cachePolicyId: cachePolicy(scope, env).id,
     originRequestPolicyId: originRequest(scope, env).id,
     responseHeadersPolicyId: responseHeaders(scope, env).id,
@@ -47,7 +47,7 @@ export const frontendCacheBehaviour = (
 };
 
 const cachePolicy = (scope: Construct, env: string) =>
-  new CloudfrontCachePolicy(scope, 'frontend-cache-policy', {
+  new CloudfrontCachePolicy(scope, "frontend-cache-policy", {
     name: `${APP}-${env}-home-frontend`,
     defaultTtl: 1,
     minTtl: 1,
@@ -56,52 +56,52 @@ const cachePolicy = (scope: Construct, env: string) =>
       enableAcceptEncodingGzip: true,
       enableAcceptEncodingBrotli: true,
       cookiesConfig: {
-        cookieBehavior: 'none',
+        cookieBehavior: "none",
       },
       headersConfig: {
-        headerBehavior: 'none',
+        headerBehavior: "none",
       },
       queryStringsConfig: {
-        queryStringBehavior: 'none',
+        queryStringBehavior: "none",
       },
     },
   });
 
 const originRequest = (scope: Construct, env: string) =>
-  new CloudfrontOriginRequestPolicy(scope, 'frontend-origin-request-policy', {
+  new CloudfrontOriginRequestPolicy(scope, "frontend-origin-request-policy", {
     name: `${APP}-${env}-home-frontend`,
     cookiesConfig: {
-      cookieBehavior: 'none',
+      cookieBehavior: "none",
     },
     headersConfig: {
-      headerBehavior: 'none',
+      headerBehavior: "none",
     },
     queryStringsConfig: {
-      queryStringBehavior: 'none',
+      queryStringBehavior: "none",
     },
   });
 
 const responseHeaders = (scope: Construct, env: string) =>
   new CloudfrontResponseHeadersPolicy(
     scope,
-    'frontend-response-headers-policy',
+    "frontend-response-headers-policy",
     {
       name: `${APP}-${env}-home-frontend`,
       corsConfig: {
         accessControlAllowCredentials: false,
         accessControlMaxAgeSec: 3600,
         accessControlAllowOrigins: {
-          items: ['*'],
+          items: ["*"],
           // items: [`${env.portal.domain}.${env.portal.zone.name}`],
         },
         accessControlAllowHeaders: {
-          items: ['*'],
+          items: ["*"],
         },
         accessControlAllowMethods: {
-          items: ['GET'],
+          items: ["GET"],
         },
         accessControlExposeHeaders: {
-          items: ['ETag'],
+          items: ["ETag"],
         },
         originOverride: true,
       },
@@ -110,11 +110,11 @@ const responseHeaders = (scope: Construct, env: string) =>
           override: true,
         },
         frameOptions: {
-          frameOption: 'DENY',
+          frameOption: "DENY",
           override: true,
         },
         referrerPolicy: {
-          referrerPolicy: 'same-origin',
+          referrerPolicy: "same-origin",
           override: true,
         },
         xssProtection: {
@@ -128,6 +128,20 @@ const responseHeaders = (scope: Construct, env: string) =>
           preload: true,
           override: true,
         },
+        contentSecurityPolicy: {
+          contentSecurityPolicy: "frame-ancestors 'none'",
+          override: true,
+        },
       },
-    }
+      customHeadersConfig: {
+        items: [
+          {
+            header: 'Permissions-Policy',
+            value:
+              'accelerometer=(), ambient-light-sensor=(), autoplay=(), camera=(), display-capture=(), document-domain=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), sync-xhr=(), usb=(), xr-spatial-tracking=()',
+            override: true,
+          },
+        ],
+      },
+    },
   );

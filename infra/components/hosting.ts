@@ -66,6 +66,8 @@ export class HostingStack extends TerraformStack {
       // },
       viewerCertificate: {
         cloudfrontDefaultCertificate: true,
+        sslSupportMethod: "sni-only",
+        minimumProtocolVersion: "TLSv1.2_2021",
       },
       restrictions: {
         geoRestriction: {
