@@ -59,7 +59,7 @@ jobs:
           aws-region: eu-central-1
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT}}:role/home-cicd-deploy
       - name: Download Dist
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist-${{ github.sha }}
           path: dist
